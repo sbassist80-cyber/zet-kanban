@@ -5,10 +5,12 @@ import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea
 import { Task, TaskStatus, COLUMNS } from '@/types/kanban';
 import TaskCard from './TaskCard';
 import AddTaskModal from './AddTaskModal';
+import TaskDetailModal from './TaskDetailModal';
 
 export default function KanbanBoard() {
   const [tasks, setTasks] = useState<Task[]>([]);
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -58,12 +60,24 @@ export default function KanbanBoard() {
     });
     const newTask = await res.json();
     setTasks([...tasks, newTask]);
-    setIsModalOpen(false);
+    setIsAddModalOpen(false);
+  };
+
+  const updateTask = async (id: string, updates: Partial<Task>) => {
+    const res = await fetch(`/api/tasks/${id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(updates),
+    });
+    const updatedTask = await res.json();
+    setTasks(tasks.map(t => t.id === id ? updatedTask : t));
+    setSelectedTask(updatedTask);
   };
 
   const deleteTask = async (id: string) => {
     await fetch(`/api/tasks/${id}`, { method: 'DELETE' });
     setTasks(tasks.filter(t => t.id !== id));
+    setSelectedTask(null);
   };
 
   const getTasksByStatus = (status: TaskStatus) => {
@@ -80,14 +94,14 @@ export default function KanbanBoard() {
 
   return (
     <div className="min-h-screen bg-gray-900 p-6">
-      <div className="max-w-7xl mx-auto">
+      <div className="max-w-[1600px] mx-auto">
         <div className="flex justify-between items-center mb-8">
           <div>
             <h1 className="text-3xl font-bold text-white">🐙 Zet Kanban</h1>
             <p className="text-gray-400 mt-1">Sean & Zet Task Management</p>
           </div>
           <button
-            onClick={() => setIsModalOpen(true)}
+            onClick={() => setIsAddModalOpen(true)}
             className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
           >
             + Add Task
@@ -95,22 +109,25 @@ export default function KanbanBoard() {
         </div>
 
         <DragDropContext onDragEnd={onDragEnd}>
-          <div className="grid grid-cols-4 gap-4">
+          <div className="grid grid-cols-5 gap-4">
             {COLUMNS.map(column => (
               <div key={column.id} className="bg-gray-800 rounded-lg p-4">
-                <h2 className="text-lg font-semibold text-white mb-4 flex items-center justify-between">
-                  {column.title}
-                  <span className="bg-gray-700 text-gray-300 text-sm px-2 py-1 rounded">
-                    {getTasksByStatus(column.id).length}
-                  </span>
-                </h2>
+                <div className="mb-4">
+                  <h2 className="text-lg font-semibold text-white flex items-center justify-between">
+                    {column.title}
+                    <span className="bg-gray-700 text-gray-300 text-sm px-2 py-1 rounded">
+                      {getTasksByStatus(column.id).length}
+                    </span>
+                  </h2>
+                  <p className="text-xs text-gray-500 mt-1">{column.description}</p>
+                </div>
                 <Droppable droppableId={column.id}>
                   {(provided, snapshot) => (
                     <div
                       ref={provided.innerRef}
                       {...provided.droppableProps}
                       className={`min-h-[200px] space-y-3 ${
-                        snapshot.isDraggingOver ? 'bg-gray-700/50 rounded-lg' : ''
+                        snapshot.isDraggingOver ? 'bg-gray-700/50 rounded-lg p-2' : ''
                       }`}
                     >
                       {getTasksByStatus(column.id).map((task, index) => (
@@ -124,6 +141,7 @@ export default function KanbanBoard() {
                               <TaskCard
                                 task={task}
                                 onDelete={() => deleteTask(task.id)}
+                                onClick={() => setSelectedTask(task)}
                                 isDragging={snapshot.isDragging}
                               />
                             </div>
@@ -140,10 +158,19 @@ export default function KanbanBoard() {
         </DragDropContext>
       </div>
 
-      {isModalOpen && (
+      {isAddModalOpen && (
         <AddTaskModal
-          onClose={() => setIsModalOpen(false)}
+          onClose={() => setIsAddModalOpen(false)}
           onAdd={addTask}
+        />
+      )}
+
+      {selectedTask && (
+        <TaskDetailModal
+          task={selectedTask}
+          onClose={() => setSelectedTask(null)}
+          onUpdate={(updates) => updateTask(selectedTask.id, updates)}
+          onDelete={() => deleteTask(selectedTask.id)}
         />
       )}
     </div>

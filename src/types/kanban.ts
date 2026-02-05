@@ -1,6 +1,6 @@
-export type TaskStatus = 'suggested' | 'approved' | 'in-progress' | 'done';
+export type TaskStatus = 'backlog' | 'assigned' | 'in-progress' | 'review' | 'done';
 export type TaskPriority = 'low' | 'medium' | 'high';
-export type AssignedTo = 'sean' | 'zet';
+export type AssignedTo = 'unassigned' | 'sean' | 'zet';
 
 export interface Task {
   id: string;
@@ -9,6 +9,7 @@ export interface Task {
   status: TaskStatus;
   priority: TaskPriority;
   assignedTo: AssignedTo;
+  startDate: string | null;  // ISO date string or null
   createdAt: string;
   updatedAt: string;
 }
@@ -19,9 +20,10 @@ export interface Column {
   tasks: Task[];
 }
 
-export const COLUMNS: { id: TaskStatus; title: string }[] = [
-  { id: 'suggested', title: '📝 Suggested' },
-  { id: 'approved', title: '✅ Approved' },
-  { id: 'in-progress', title: '🔄 In Progress' },
-  { id: 'done', title: '✔️ Done' },
+export const COLUMNS: { id: TaskStatus; title: string; description: string }[] = [
+  { id: 'backlog', title: '📋 Backlog', description: 'Unassigned tasks' },
+  { id: 'assigned', title: '👤 Assigned', description: 'Waiting for start date' },
+  { id: 'in-progress', title: '🔄 In Progress', description: 'Currently working' },
+  { id: 'review', title: '👀 Review', description: 'Awaiting review' },
+  { id: 'done', title: '✅ Done', description: 'Completed & reviewed' },
 ];

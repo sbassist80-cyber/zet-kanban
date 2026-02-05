@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Task, TaskStatus, TaskPriority, AssignedTo, COLUMNS } from '@/types/kanban';
+import { Task, TaskPriority } from '@/types/kanban';
 
 interface AddTaskModalProps {
   onClose: () => void;
@@ -11,14 +11,20 @@ interface AddTaskModalProps {
 export default function AddTaskModal({ onClose, onAdd }: AddTaskModalProps) {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
-  const [status, setStatus] = useState<TaskStatus>('suggested');
   const [priority, setPriority] = useState<TaskPriority>('medium');
-  const [assignedTo, setAssignedTo] = useState<AssignedTo>('zet');
+  const [startDate, setStartDate] = useState('');
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!title.trim()) return;
-    onAdd({ title, description, status, priority, assignedTo });
+    onAdd({ 
+      title, 
+      description, 
+      status: 'backlog',  // Always start in backlog
+      priority, 
+      assignedTo: 'unassigned',  // Always start unassigned
+      startDate: startDate || null,
+    });
   };
 
   return (
@@ -31,7 +37,7 @@ export default function AddTaskModal({ onClose, onAdd }: AddTaskModalProps) {
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm text-gray-300 mb-1">Title</label>
+            <label className="block text-sm text-gray-300 mb-1">Title *</label>
             <input
               type="text"
               value={title}
@@ -47,25 +53,12 @@ export default function AddTaskModal({ onClose, onAdd }: AddTaskModalProps) {
             <textarea
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              className="w-full bg-gray-700 text-white rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none h-24 resize-none"
-              placeholder="Task description..."
+              className="w-full bg-gray-700 text-white rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none h-32 resize-none"
+              placeholder="Detailed task description..."
             />
           </div>
 
-          <div className="grid grid-cols-3 gap-3">
-            <div>
-              <label className="block text-sm text-gray-300 mb-1">Status</label>
-              <select
-                value={status}
-                onChange={(e) => setStatus(e.target.value as TaskStatus)}
-                className="w-full bg-gray-700 text-white rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none"
-              >
-                {COLUMNS.map(col => (
-                  <option key={col.id} value={col.id}>{col.title}</option>
-                ))}
-              </select>
-            </div>
-
+          <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="block text-sm text-gray-300 mb-1">Priority</label>
               <select
@@ -73,24 +66,26 @@ export default function AddTaskModal({ onClose, onAdd }: AddTaskModalProps) {
                 onChange={(e) => setPriority(e.target.value as TaskPriority)}
                 className="w-full bg-gray-700 text-white rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none"
               >
-                <option value="low">Low</option>
-                <option value="medium">Medium</option>
-                <option value="high">High</option>
+                <option value="low">🟢 Low</option>
+                <option value="medium">🟡 Medium</option>
+                <option value="high">🔴 High</option>
               </select>
             </div>
 
             <div>
-              <label className="block text-sm text-gray-300 mb-1">Assigned To</label>
-              <select
-                value={assignedTo}
-                onChange={(e) => setAssignedTo(e.target.value as AssignedTo)}
+              <label className="block text-sm text-gray-300 mb-1">Start Date</label>
+              <input
+                type="date"
+                value={startDate}
+                onChange={(e) => setStartDate(e.target.value)}
                 className="w-full bg-gray-700 text-white rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none"
-              >
-                <option value="zet">🐙 Zet</option>
-                <option value="sean">👤 Sean</option>
-              </select>
+              />
             </div>
           </div>
+
+          <p className="text-xs text-gray-500">
+            New tasks go to Backlog as unassigned. Assign and set start date to move forward.
+          </p>
 
           <div className="flex gap-3 pt-2">
             <button
@@ -104,7 +99,7 @@ export default function AddTaskModal({ onClose, onAdd }: AddTaskModalProps) {
               type="submit"
               className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
             >
-              Add Task
+              Add to Backlog
             </button>
           </div>
         </form>

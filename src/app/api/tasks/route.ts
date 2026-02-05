@@ -14,9 +14,10 @@ export async function POST(request: NextRequest) {
     id: uuidv4(),
     title: body.title,
     description: body.description || '',
-    status: body.status || 'suggested',
+    status: body.status || 'backlog',
     priority: body.priority || 'medium',
-    assignedTo: body.assignedTo || 'zet',
+    assignedTo: body.assignedTo || 'unassigned',
+    startDate: body.startDate || null,
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   };
