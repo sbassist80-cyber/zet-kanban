@@ -26,6 +26,11 @@ export function saveTasks(tasks: Task[]): void {
   writeFileSync(DB_PATH, JSON.stringify({ tasks }, null, 2));
 }
 
+export function getTask(id: string): Task | null {
+  const tasks = getTasks();
+  return tasks.find(t => t.id === id) || null;
+}
+
 export function addTask(task: Task): Task {
   const tasks = getTasks();
   tasks.push(task);

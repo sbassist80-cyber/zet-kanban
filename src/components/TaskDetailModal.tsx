@@ -1,23 +1,29 @@
 'use client';
 
 import { useState } from 'react';
-import { Task, TaskStatus, TaskPriority, AssignedTo, COLUMNS } from '@/types/kanban';
+import { Task, TaskStatus, TaskPriority, AssignedTo, BusinessUnit, COLUMNS } from '@/types/kanban';
 
 interface TaskDetailModalProps {
   task: Task;
   onClose: () => void;
   onUpdate: (updates: Partial<Task>) => void;
   onDelete: () => void;
+  businessUnits?: BusinessUnit[];
 }
 
-export default function TaskDetailModal({ task, onClose, onUpdate, onDelete }: TaskDetailModalProps) {
+export default function TaskDetailModal({ task, onClose, onUpdate, onDelete, businessUnits = [] }: TaskDetailModalProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [title, setTitle] = useState(task.title);
   const [description, setDescription] = useState(task.description);
   const [status, setStatus] = useState<TaskStatus>(task.status);
   const [priority, setPriority] = useState<TaskPriority>(task.priority);
   const [assignedTo, setAssignedTo] = useState<AssignedTo>(task.assignedTo);
+  const [businessUnit, setBusinessUnit] = useState(task.businessUnit || '');
   const [startDate, setStartDate] = useState(task.startDate || '');
+
+  const currentBusinessUnit = task.businessUnit 
+    ? businessUnits.find(u => u.id === task.businessUnit)
+    : null;
 
   const handleSave = () => {
     onUpdate({
@@ -26,6 +32,7 @@ export default function TaskDetailModal({ task, onClose, onUpdate, onDelete }: T
       status,
       priority,
       assignedTo,
+      businessUnit: businessUnit || undefined,
       startDate: startDate || null,
     });
     setIsEditing(false);
@@ -74,6 +81,32 @@ export default function TaskDetailModal({ task, onClose, onUpdate, onDelete }: T
                 <p className="text-gray-300 bg-gray-700/50 rounded-lg p-3 min-h-[80px]">
                   {task.description || 'No description'}
                 </p>
+              )}
+            </div>
+
+            {/* Business Unit */}
+            <div>
+              <label className="block text-sm text-gray-400 mb-2">Business Unit</label>
+              {isEditing ? (
+                <select
+                  value={businessUnit}
+                  onChange={(e) => setBusinessUnit(e.target.value)}
+                  className="w-full bg-gray-700 text-white rounded-lg px-3 py-2"
+                >
+                  <option value="">No business unit</option>
+                  {businessUnits.map(unit => (
+                    <option key={unit.id} value={unit.id}>{unit.name}</option>
+                  ))}
+                </select>
+              ) : currentBusinessUnit ? (
+                <span 
+                  className="inline-block px-3 py-2 rounded-lg text-white font-medium"
+                  style={{ backgroundColor: currentBusinessUnit.color }}
+                >
+                  {currentBusinessUnit.name}
+                </span>
+              ) : (
+                <p className="text-gray-500 bg-gray-700/50 rounded-lg px-3 py-2">Not assigned</p>
               )}
             </div>
 

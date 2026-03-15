@@ -1,18 +1,20 @@
 'use client';
 
 import { useState } from 'react';
-import { Task, TaskPriority } from '@/types/kanban';
+import { Task, TaskPriority, BusinessUnit } from '@/types/kanban';
 
 interface AddTaskModalProps {
   onClose: () => void;
   onAdd: (task: Partial<Task>) => void;
+  businessUnits?: BusinessUnit[];
 }
 
-export default function AddTaskModal({ onClose, onAdd }: AddTaskModalProps) {
+export default function AddTaskModal({ onClose, onAdd, businessUnits = [] }: AddTaskModalProps) {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [priority, setPriority] = useState<TaskPriority>('medium');
   const [startDate, setStartDate] = useState('');
+  const [businessUnit, setBusinessUnit] = useState('');
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -23,6 +25,7 @@ export default function AddTaskModal({ onClose, onAdd }: AddTaskModalProps) {
       status: 'backlog',  // Always start in backlog
       priority, 
       assignedTo: 'unassigned',  // Always start unassigned
+      businessUnit: businessUnit || undefined,
       startDate: startDate || null,
     });
   };
@@ -56,6 +59,20 @@ export default function AddTaskModal({ onClose, onAdd }: AddTaskModalProps) {
               className="w-full bg-gray-700 text-white rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none h-32 resize-none"
               placeholder="Detailed task description..."
             />
+          </div>
+
+          <div>
+            <label className="block text-sm text-gray-300 mb-1">Business Unit</label>
+            <select
+              value={businessUnit}
+              onChange={(e) => setBusinessUnit(e.target.value)}
+              className="w-full bg-gray-700 text-white rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none"
+            >
+              <option value="">No business unit</option>
+              {businessUnits.map(unit => (
+                <option key={unit.id} value={unit.id}>{unit.name}</option>
+              ))}
+            </select>
           </div>
 
           <div className="grid grid-cols-2 gap-3">
